@@ -1,9 +1,9 @@
 ---
-name: dark-mode-design-expert
+name: accessible-dark-mode-design-expert
 description: Design, implement, review, and audit accessible light/dark theme systems for websites and apps. Use for dark mode, night mode, theme switching, prefers-color-scheme, color-scheme, design tokens, surface elevation, OLED considerations, contrast audits, theme-aware imagery, Material or Apple dark appearance, reduced-motion-safe transitions, and optional time/weather/sky/ocean atmospheric themes.
 ---
 
-# Dark Mode Design Expert
+# Accessible Dark Mode Design Expert
 
 Build dark themes as complete appearance systems, not color inversions. Preserve user control, verify contrast computationally, distinguish platform conventions, and test real content in both appearances.
 

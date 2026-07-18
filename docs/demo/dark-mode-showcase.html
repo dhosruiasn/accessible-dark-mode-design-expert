@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en" class="theme-dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Accessible Dark Mode Showcase</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0c1222;
+      --surface-1: #111a2d;
+      --surface-2: #17223a;
+      --surface-3: #1e2c48;
+      --text: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-soft: #7dd3fc;
+      --accent-ink: #0f172a;
+      --violet: #a78bfa;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --border: rgba(226, 232, 240, 0.13);
+      --focus: #7dd3fc;
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      width: 1440px;
+      height: 900px;
+      margin: 0;
+      overflow: hidden;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 82% -12%, rgba(56, 189, 248, 0.17), transparent 36%),
+        radial-gradient(circle at 16% 108%, rgba(167, 139, 250, 0.12), transparent 34%),
+        var(--bg);
+    }
+
+    button { font: inherit; }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 236px 1fr;
+      min-height: 100%;
+    }
+
+    .sidebar {
+      padding: 26px 20px;
+      border-right: 1px solid var(--border);
+      background: rgba(8, 13, 27, 0.68);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 8px 28px;
+    }
+
+    .brand img {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+    }
+
+    .brand strong { display: block; font-size: 15px; letter-spacing: -0.01em; }
+    .brand span { display: block; margin-top: 3px; color: var(--text-muted); font-size: 12px; }
+
+    .nav-label {
+      margin: 12px 10px 8px;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      margin: 4px 0;
+      padding: 11px 12px;
+      border: 0;
+      border-radius: 10px;
+      color: var(--text-secondary);
+      background: transparent;
+      text-align: left;
+    }
+
+    .nav-item.active {
+      color: var(--text);
+      background: var(--surface-2);
+      box-shadow: inset 3px 0 var(--accent);
+    }
+
+    .nav-dot {
+      width: 9px;
+      height: 9px;
+      border: 2px solid currentColor;
+      border-radius: 50%;
+    }
+
+    .main { padding: 28px 34px 34px; }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .eyebrow {
+      margin: 0 0 7px;
+      color: var(--accent-soft);
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1 { margin: 0; font-size: 30px; line-height: 1.15; letter-spacing: -0.035em; }
+    .subtitle { margin: 7px 0 0; color: var(--text-secondary); font-size: 14px; }
+
+    .theme-switch {
+      display: flex;
+      gap: 3px;
+      padding: 4px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface-1);
+    }
+
+    .theme-switch button {
+      padding: 8px 13px;
+      border: 0;
+      border-radius: 8px;
+      color: var(--text-muted);
+      background: transparent;
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .theme-switch .selected {
+      color: var(--accent-ink);
+      background: var(--accent-soft);
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: linear-gradient(145deg, rgba(30, 44, 72, 0.92), rgba(17, 26, 45, 0.94));
+      box-shadow: 0 14px 36px rgba(2, 6, 23, 0.24);
+    }
+
+    .metric { min-height: 118px; padding: 18px; }
+    .metric-label { color: var(--text-muted); font-size: 12px; font-weight: 650; }
+    .metric-row { display: flex; align-items: flex-end; justify-content: space-between; margin-top: 13px; }
+    .metric-value { font-size: 28px; font-weight: 760; letter-spacing: -0.04em; }
+    .metric-note { padding-bottom: 3px; color: var(--success); font-size: 11px; font-weight: 700; }
+    .metric-note.warning { color: var(--warning); }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1.45fr 1fr;
+      gap: 14px;
+    }
+
+    .panel { min-height: 276px; padding: 20px; }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    h2 { margin: 0; font-size: 15px; letter-spacing: -0.01em; }
+    .badge { padding: 5px 8px; border-radius: 999px; color: #bbf7d0; background: rgba(52, 211, 153, 0.12); font-size: 10px; font-weight: 750; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th { padding: 0 10px 10px; color: var(--text-muted); font-size: 10px; letter-spacing: 0.08em; text-align: left; text-transform: uppercase; }
+    td { padding: 12px 10px; border-top: 1px solid var(--border); color: var(--text-secondary); font-size: 12px; }
+    td:first-child { color: var(--text); font-weight: 650; }
+    .swatches { display: flex; align-items: center; gap: 6px; }
+    .swatch { width: 18px; height: 18px; border: 1px solid rgba(255,255,255,.18); border-radius: 6px; }
+    .ratio { color: var(--accent-soft); font-variant-numeric: tabular-nums; font-weight: 750; }
+    .pass { color: var(--success); font-weight: 750; }
+
+    .layers { display: grid; gap: 10px; }
+    .layer { display: flex; align-items: center; justify-content: space-between; padding: 12px 13px; border: 1px solid var(--border); border-radius: 11px; }
+    .layer:nth-child(1) { background: var(--surface-1); }
+    .layer:nth-child(2) { background: var(--surface-2); }
+    .layer:nth-child(3) { background: var(--surface-3); }
+    .layer-name { color: var(--text-secondary); font-size: 12px; }
+    .layer-code { color: var(--accent-soft); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
+
+    .focus-demo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 13px;
+      padding: 12px 13px;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      background: rgba(12, 18, 34, 0.58);
+    }
+
+    .focus-demo span { color: var(--text-secondary); font-size: 12px; }
+    .focus-button { padding: 8px 12px; border: 0; border-radius: 8px; color: var(--accent-ink); background: var(--accent); font-size: 11px; font-weight: 750; outline: 3px solid var(--focus); outline-offset: 3px; }
+
+    .footer-note { margin-top: 15px; color: var(--text-muted); font-size: 11px; }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .card { animation: reveal 520ms ease both; }
+      .card:nth-child(2) { animation-delay: 50ms; }
+      .card:nth-child(3) { animation-delay: 100ms; }
+      .card:nth-child(4) { animation-delay: 150ms; }
+      @keyframes reveal { from { opacity: 0; transform: translateY(7px); } }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="../assets/logo.png" alt="">
+        <div><strong>Luminance Lab</strong><span>Accessibility console</span></div>
+      </div>
+      <div class="nav-label">Workspace</div>
+      <button class="nav-item active"><span class="nav-dot"></span>Overview</button>
+      <button class="nav-item"><span class="nav-dot"></span>Semantic tokens</button>
+      <button class="nav-item"><span class="nav-dot"></span>Contrast pairs</button>
+      <button class="nav-item"><span class="nav-dot"></span>Motion settings</button>
+      <div class="nav-label">Audit</div>
+      <button class="nav-item"><span class="nav-dot"></span>Components</button>
+      <button class="nav-item"><span class="nav-dot"></span>Platform checks</button>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Accessible theme system</p>
+          <h1>Dark appearance health</h1>
+          <p class="subtitle">Semantic color, tonal elevation, and contrast verified together.</p>
+        </div>
+        <div class="theme-switch" aria-label="Appearance">
+          <button>System</button><button>Light</button><button class="selected">Dark</button>
+        </div>
+      </header>
+
+      <section class="summary-grid" aria-label="Audit summary">
+        <article class="card metric"><div class="metric-label">Required pairs</div><div class="metric-row"><div class="metric-value">10/10</div><div class="metric-note">PASS</div></div></article>
+        <article class="card metric"><div class="metric-label">Primary text</div><div class="metric-row"><div class="metric-value">17.84</div><div class="metric-note">AAA</div></div></article>
+        <article class="card metric"><div class="metric-label">Focus indicator</div><div class="metric-row"><div class="metric-value">8.71</div><div class="metric-note">PASS</div></div></article>
+        <article class="card metric"><div class="metric-label">Motion preference</div><div class="metric-row"><div class="metric-value">Safe</div><div class="metric-note warning">REDUCE</div></div></article>
+      </section>
+
+      <section class="content-grid">
+        <article class="card panel">
+          <div class="panel-header"><h2>Verified contrast pairs</h2><span class="badge">Unrounded calculation</span></div>
+          <table>
+            <thead><tr><th>Role</th><th>Colors</th><th>Ratio</th><th>Result</th></tr></thead>
+            <tbody>
+              <tr><td>Primary text</td><td><span class="swatches"><i class="swatch" style="background:#f8fafc"></i><i class="swatch" style="background:#0c1222"></i></span></td><td class="ratio">17.84:1</td><td class="pass">AAA</td></tr>
+              <tr><td>Secondary text</td><td><span class="swatches"><i class="swatch" style="background:#cbd5e1"></i><i class="swatch" style="background:#0c1222"></i></span></td><td class="ratio">12.57:1</td><td class="pass">AAA</td></tr>
+              <tr><td>Primary button</td><td><span class="swatches"><i class="swatch" style="background:#0f172a"></i><i class="swatch" style="background:#38bdf8"></i></span></td><td class="ratio">8.33:1</td><td class="pass">AAA</td></tr>
+              <tr><td>Focus ring</td><td><span class="swatches"><i class="swatch" style="background:#38bdf8"></i><i class="swatch" style="background:#0c1222"></i></span></td><td class="ratio">8.71:1</td><td class="pass">PASS</td></tr>
+            </tbody>
+          </table>
+        </article>
+
+        <article class="card panel">
+          <div class="panel-header"><h2>Tonal elevation</h2><span class="badge">No overlay math</span></div>
+          <div class="layers">
+            <div class="layer"><span class="layer-name">Base canvas</span><span class="layer-code">#0c1222</span></div>
+            <div class="layer"><span class="layer-name">Raised surface</span><span class="layer-code">#17223a</span></div>
+            <div class="layer"><span class="layer-name">Overlay surface</span><span class="layer-code">#1e2c48</span></div>
+          </div>
+          <div class="focus-demo"><span>Keyboard focus stays visible</span><button class="focus-button">Continue</button></div>
+          <p class="footer-note">Appearance follows the user. Atmosphere remains an optional, independent layer.</p>
+        </article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
