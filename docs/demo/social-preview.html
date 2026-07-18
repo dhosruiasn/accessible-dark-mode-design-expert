@@ -60,6 +60,19 @@
       font-weight: 680;
       letter-spacing: .025em;
     }
+    .capabilities span {
+      position: relative;
+      display: inline-block;
+    }
+    .capabilities span::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      bottom: -7px;
+      left: 0;
+      height: 5px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='5' viewBox='0 0 18 5'%3E%3Cpath d='M0 2.5 Q4.5 -0.5 9 2.5 T18 2.5' fill='none' stroke='%23f5d36d' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") left bottom / 18px 5px repeat-x;
+    }
     .capabilities b { padding: 0 10px; color: #f5d36d; font-family: Georgia, "Times New Roman", serif; font-weight: 400; }
     .footer { position: absolute; z-index: 1; right: 58px; bottom: 42px; color: #d3a778; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; letter-spacing: .02em; }
   </style>
@@ -70,7 +83,7 @@
       <p class="eyebrow">Codex + Claude Code Agent Skill</p>
       <h1><span>Accessible Dark Mode</span><span>Design Expert</span></h1>
       <p class="subtitle">Design, implement, review, and audit adaptive light/dark theme systems with executable contrast verification.</p>
-      <p class="capabilities">WCAG contrast <b>✦</b> Semantic tokens <b>✦</b> Reduced motion <b>✦</b> Cross-runtime</p>
+      <p class="capabilities"><span>WCAG contrast</span> <b>✦</b> <span>Semantic tokens</span> <b>✦</b> <span>Reduced motion</span> <b>✦</b> <span>Cross-runtime</span></p>
     </section>
     <div class="footer">github.com/dhosruiasn</div>
   </main>
