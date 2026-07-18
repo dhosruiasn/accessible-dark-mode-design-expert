@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dark Mode Design Expert"
+  short_description: "Design, implement, and audit accessible dark themes"
+  default_prompt: "Use $dark-mode-design-expert to design and audit an accessible dark theme for this interface."

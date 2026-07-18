@@ -1,0 +1,62 @@
+[
+  {
+    "label": "light primary text / page",
+    "foreground": "#0f172a",
+    "background": "#ffffff",
+    "require": "aa-normal"
+  },
+  {
+    "label": "light secondary text / page",
+    "foreground": "#475569",
+    "background": "#ffffff",
+    "require": "aa-normal"
+  },
+  {
+    "label": "dark primary text / page",
+    "foreground": "#f8fafc",
+    "background": "#0c1222",
+    "require": "aa-normal"
+  },
+  {
+    "label": "dark secondary text / page",
+    "foreground": "#cbd5e1",
+    "background": "#0c1222",
+    "require": "aa-normal"
+  },
+  {
+    "label": "light primary button",
+    "foreground": "#ffffff",
+    "background": "#0369a1",
+    "require": "aa-normal"
+  },
+  {
+    "label": "light primary button hover",
+    "foreground": "#ffffff",
+    "background": "#075985",
+    "require": "aa-normal"
+  },
+  {
+    "label": "dark primary button",
+    "foreground": "#0f172a",
+    "background": "#38bdf8",
+    "require": "aa-normal"
+  },
+  {
+    "label": "dark primary button hover",
+    "foreground": "#0f172a",
+    "background": "#7dd3fc",
+    "require": "aa-normal"
+  },
+  {
+    "label": "light focus ring / page",
+    "foreground": "#0284c7",
+    "background": "#ffffff",
+    "require": "non-text"
+  },
+  {
+    "label": "dark focus ring / page",
+    "foreground": "#38bdf8",
+    "background": "#0c1222",
+    "require": "non-text"
+  }
+]
