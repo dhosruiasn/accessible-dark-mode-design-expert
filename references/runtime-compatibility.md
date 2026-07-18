@@ -10,6 +10,7 @@ Use one canonical skill directory and treat Codex and Claude installations as ge
 - Each installed copy receives `.skill-sync.json`. This marker records the canonical path and hashes of managed files.
 - Running the synchronizer from either installed copy follows the marker back to the canonical source.
 - Unknown files in an installation are preserved. A managed file changed only in an installation causes a conflict instead of being overwritten.
+- Repository-only files such as `README.md`, contribution/security guides, `.gitignore`, and `.github/` stay in the canonical repository. `LICENSE` is included in installed copies.
 
 ## Runtime behavior
 

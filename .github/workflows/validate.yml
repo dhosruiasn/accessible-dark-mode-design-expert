@@ -1,0 +1,33 @@
+name: Validate Skill
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate Skill structure
+        run: node scripts/validate-skill.mjs
+
+      - name: Test contrast calculator
+        run: node scripts/test-contrast-ratio.mjs
+
+      - name: Test installation sync
+        run: node scripts/test-sync-installations.mjs
+
+      - name: Verify sample contrast matrix
+        run: node scripts/contrast-ratio.mjs --file references/color-pairs.example.json

@@ -36,6 +36,9 @@ try {
   assert.equal(fs.existsSync(path.join(codexDestination, 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(claudeDestination, 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(codexDestination, '.skill-sync.json')), true);
+  assert.equal(fs.existsSync(path.join(codexDestination, 'README.md')), false);
+  assert.equal(fs.existsSync(path.join(codexDestination, '.gitignore')), false);
+  assert.equal(fs.existsSync(path.join(codexDestination, 'LICENSE')), true);
 
   const initialCheck = run(synchronizer, '--check');
   assert.equal(initialCheck.status, 0, initialCheck.stdout);

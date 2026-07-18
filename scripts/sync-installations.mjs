@@ -144,17 +144,25 @@ function validateSkillRoot(root) {
   }
 }
 
-function shouldExclude(relativePath) {
+function shouldExclude(relativePath, repositorySource = false) {
   const parts = relativePath.split(path.sep);
+  const repositoryOnly = new Set([
+    '.gitignore',
+    'README.md',
+    'CONTRIBUTING.md',
+    'SECURITY.md',
+  ]);
   return (
     relativePath === MARKER_FILE
+    || (repositorySource && repositoryOnly.has(relativePath))
+    || (repositorySource && parts[0] === '.github')
     || parts.includes('.git')
     || parts.includes('node_modules')
     || parts.includes('.DS_Store')
   );
 }
 
-function listFiles(root) {
+function listFiles(root, { repositorySource = false } = {}) {
   const files = [];
 
   function visit(directory) {
@@ -164,7 +172,7 @@ function listFiles(root) {
     for (const entry of entries) {
       const absolutePath = path.join(directory, entry.name);
       const relativePath = path.relative(root, absolutePath);
-      if (shouldExclude(relativePath)) continue;
+      if (shouldExclude(relativePath, repositorySource)) continue;
       if (entry.isSymbolicLink()) {
         throw new Error(`symbolic links are not supported in the canonical skill: ${relativePath}`);
       }
@@ -181,9 +189,9 @@ function hashFile(filePath) {
   return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
 }
 
-function fileMap(root) {
+function fileMap(root, options = {}) {
   return Object.fromEntries(
-    listFiles(root).map((relativePath) => [
+    listFiles(root, options).map((relativePath) => [
       relativePath,
       hashFile(path.join(root, relativePath)),
     ])
@@ -247,7 +255,7 @@ function adoptDestination(name, destination, canonicalRoot, dryRun) {
   }
 
   validateSkillRoot(destination);
-  const sourceFiles = fileMap(canonicalRoot);
+  const sourceFiles = fileMap(canonicalRoot, { repositorySource: true });
   const destinationFiles = fileMap(destination);
   const unexpected = [];
   const different = [];
@@ -317,7 +325,7 @@ function removeEmptyParents(startDirectory, stopDirectory) {
 }
 
 function syncDestination(name, destination, canonicalRoot, dryRun) {
-  const sourceFiles = fileMap(canonicalRoot);
+  const sourceFiles = fileMap(canonicalRoot, { repositorySource: true });
   const destinationExists = fs.existsSync(destination);
 
   if (path.resolve(destination) === path.resolve(canonicalRoot)) {
@@ -399,7 +407,7 @@ function checkDestination(name, destination, canonicalRoot) {
     return false;
   }
 
-  const sourceFiles = fileMap(canonicalRoot);
+  const sourceFiles = fileMap(canonicalRoot, { repositorySource: true });
   const destinationFiles = fileMap(destination);
   const drift = [];
 
