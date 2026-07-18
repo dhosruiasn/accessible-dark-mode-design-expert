@@ -9,7 +9,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ### Changed
 
 - Replaced the repository logo with the contributor-provided crescent moon artwork
-- Regenerated the GitHub social preview to use the new visual identity
+- Regenerated the GitHub social preview in the Logo's handcrafted crescent-moon visual style
 
 ## [2.0.0] - 2026-07-19
 
