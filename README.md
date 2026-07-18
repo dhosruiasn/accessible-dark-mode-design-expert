@@ -37,6 +37,8 @@
 - 依 Apple Dark Mode 指南處理動態顏色、圖片與系統外觀
 - 避免頁面初始載入時閃爍錯誤主題
 - 提供 `prefers-reduced-motion` 安全動畫範例
+- 建立 route／surface／state 驗收清單，涵蓋登入、Portal、第三方與 responsive 狀態
+- 盤點 raw color、主題轉場、SVG、pseudo-element、動畫與視覺效果候選
 - 支援不覆蓋使用者外觀偏好的時間、天氣、天空與海洋 atmosphere
 - 提供 Web、Apple、Material、裝置與無障礙設定稽核清單
 
@@ -47,6 +49,8 @@
 - `scripts/validate-skill.mjs`：Skill 結構與檔案驗證器
 - `scripts/sync-installations.mjs`：Codex／Claude 安全同步與名稱遷移
 - `scripts/test-sync-installations.mjs`：安裝、衝突保護與遷移回歸測試
+- `scripts/theme-surface-inventory.mjs`：route／surface／state 審查前的 source-level 候選盤點器
+- `scripts/test-theme-surface-inventory.mjs`：盤點器格式、忽略規則與 CLI 回歸測試
 
 建議使用 Node.js 18 或以上版本。
 
@@ -113,7 +117,9 @@ node scripts/contrast-ratio.mjs --file references/color-pairs.example.json
 node scripts/validate-skill.mjs
 node scripts/test-contrast-ratio.mjs
 node scripts/test-sync-installations.mjs
+node scripts/test-theme-surface-inventory.mjs
 node scripts/contrast-ratio.mjs --file references/color-pairs.example.json
+node scripts/theme-surface-inventory.mjs . --summary-only
 node scripts/sync-installations.mjs --sync --dry-run
 ```
 
@@ -156,6 +162,8 @@ This release is a substantially revised derivative of the public `dark-mode-desi
 - Apple Dark Mode guidance for dynamic color, imagery, and system appearance
 - Flash-free theme initialization
 - `prefers-reduced-motion`-safe transitions and atmospheric animation
+- Route/surface/state acceptance coverage across authenticated, portal, third-party, and responsive states
+- Source inventory for raw colors, theme transitions, SVGs, pseudo-elements, animations, and visual effects
 - Optional time, weather, sky, and ocean atmosphere without overriding appearance
 - Audit checklists for web, Apple, Material, devices, and accessibility settings
 
@@ -166,6 +174,8 @@ This release is a substantially revised derivative of the public `dark-mode-desi
 - `scripts/validate-skill.mjs` — Skill structure and file validator
 - `scripts/sync-installations.mjs` — conflict-safe Codex/Claude sync and name migration
 - `scripts/test-sync-installations.mjs` — installation, conflict, and migration regression suite
+- `scripts/theme-surface-inventory.mjs` — source-level candidate inventory for route/surface/state reviews
+- `scripts/test-theme-surface-inventory.mjs` — inventory format, ignore-rule, and CLI regression suite
 
 Node.js 18 or later is recommended.
 
@@ -232,7 +242,9 @@ The displayed ratio is rounded for readability. Pass/fail always uses the unroun
 node scripts/validate-skill.mjs
 node scripts/test-contrast-ratio.mjs
 node scripts/test-sync-installations.mjs
+node scripts/test-theme-surface-inventory.mjs
 node scripts/contrast-ratio.mjs --file references/color-pairs.example.json
+node scripts/theme-surface-inventory.mjs . --summary-only
 node scripts/sync-installations.mjs --sync --dry-run
 ```
 

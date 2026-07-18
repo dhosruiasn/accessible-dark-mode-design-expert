@@ -29,5 +29,8 @@ jobs:
       - name: Test installation sync
         run: node scripts/test-sync-installations.mjs
 
+      - name: Test theme surface inventory
+        run: node scripts/test-theme-surface-inventory.mjs
+
       - name: Verify sample contrast matrix
         run: node scripts/contrast-ratio.mjs --file references/color-pairs.example.json

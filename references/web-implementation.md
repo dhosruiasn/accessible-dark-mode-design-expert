@@ -245,7 +245,56 @@ Check the project's browser support requirements before adopting `light-dark()` 
 
 ## 5. Motion-safe transitions
 
-Do not animate the first paint. Add an animation flag only for a user-triggered change.
+Do not animate the first paint. Before adding any theme transition, inventory existing component transitions, pseudo-elements, shadows, filters, gradients, images, and overlay roots.
+
+### Default for legacy or complex products: atomic switching
+
+Use an atomic switch when the product is legacy, partially tokenized, media-heavy, composed from several stylesheets or libraries, or already contains different color-transition durations. Temporarily suspend transitions for the switch itself, then restore normal component interaction motion after two frames.
+
+```css
+:root[data-theme-switching='true'],
+:root[data-theme-switching='true'] *,
+:root[data-theme-switching='true'] *::before,
+:root[data-theme-switching='true'] *::after {
+  transition: none !important;
+}
+```
+
+```ts
+let switchFrame: number | null = null;
+let releaseFrame: number | null = null;
+let switchGeneration = 0;
+
+function applyThemeAtomically(preference: ThemePreference): void {
+  const root = document.documentElement;
+  const generation = ++switchGeneration;
+
+  if (switchFrame !== null) window.cancelAnimationFrame(switchFrame);
+  if (releaseFrame !== null) window.cancelAnimationFrame(releaseFrame);
+  root.dataset.themeSwitching = 'true';
+
+  // Flush the no-transition state before changing resolved theme tokens.
+  void root.clientWidth;
+  applyTheme(preference);
+
+  switchFrame = window.requestAnimationFrame(() => {
+    if (generation !== switchGeneration) return;
+    switchFrame = null;
+    releaseFrame = window.requestAnimationFrame(() => {
+      if (generation === switchGeneration) {
+        delete root.dataset.themeSwitching;
+      }
+      releaseFrame = null;
+    });
+  });
+}
+```
+
+The forced layout is intentional and occurs only on an explicit theme change. Test rapid repeated switching and confirm the switching attribute is always removed.
+
+### Optional for small, fully token-controlled products: scoped animation
+
+Animate only when a small, explicit set of elements owns all theme-sensitive visual properties and uses coordinated duration and easing. Add an animation flag only for a user-triggered change.
 
 ```css
 body,
@@ -280,18 +329,24 @@ body,
 ```
 
 ```ts
-function applyThemeWithTransition(preference: ThemePreference): void {
+let themeTransitionTimer: number | null = null;
+
+function applyThemeWithScopedTransition(preference: ThemePreference): void {
   const root = document.documentElement;
+  if (themeTransitionTimer !== null) window.clearTimeout(themeTransitionTimer);
   root.dataset.themeAnimating = 'true';
   applyTheme(preference);
 
-  window.setTimeout(() => {
+  themeTransitionTimer = window.setTimeout(() => {
     delete root.dataset.themeAnimating;
+    themeTransitionTimer = null;
   }, 260);
 }
 ```
 
 Do not use `transition: all`. It can animate layout, transforms, filters, and other properties that should change immediately.
+
+Do not combine the scoped example with unrelated component transitions without testing. A 150 ms background, 220 ms text color, and 300 ms shadow or pseudo-element can produce a smeared afterimage even when every individual transition is technically valid and Reduce Motion is respected.
 
 ## 6. Elevation patterns
 

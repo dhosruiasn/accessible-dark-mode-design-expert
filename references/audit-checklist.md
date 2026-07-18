@@ -21,6 +21,8 @@ Collect before judging the design:
 - Existing token definitions and computed styles
 - Light, Dark, and System preference behavior
 - Component inventory and state stories
+- Route/surface/state coverage manifest with light, dark, desktop, mobile, and blocked status
+- Stylesheet injection order, portal roots, state owners, and existing theme-sensitive transitions
 - Image, icon, logo, chart, and third-party asset inventory
 - Accessibility targets and applicable WCAG conformance level
 - Supported display technologies and common lighting contexts
@@ -102,6 +104,8 @@ Then verify:
 - [ ] Selection, caret, placeholder, browser autofill, and validation states are readable.
 - [ ] State is not communicated by color alone.
 - [ ] Modals, popovers, menus, tooltips, toasts/snackbars, date pickers, and sheets have clear boundaries.
+- [ ] Every moving indicator, slider, tab, pill, and segmented control retains one visual state owner; dark-theme rules do not paint a duplicate selected layer.
+- [ ] Selection geometry, border radius, shadow, overflow, clipping, transform, and stacking behavior match the light implementation.
 - [ ] Native controls receive the correct `color-scheme`.
 - [ ] Keyboard navigation exposes every action and follows a logical order.
 - [ ] Zoom and text resizing do not hide or clip controls.
@@ -170,6 +174,9 @@ Performance acceptance:
 - [ ] No wrong-theme flash.
 - [ ] No full reload for a theme change.
 - [ ] No significant layout shift.
+- [ ] No smeared intermediate colors, double exposure, ghosting, or afterimage during Light → Dark or Dark → Light.
+- [ ] Rapid repeated switching reaches the requested final appearance and leaves no stale switching class or attribute.
+- [ ] Component hover, focus, selected, and sliding motion still works after a theme change.
 - [ ] No long main-thread stall.
 - [ ] No unbounded background timer for atmospheric effects.
 - [ ] No large duplicate asset download.
@@ -189,6 +196,14 @@ For a batch:
 ```bash
 node <skill-dir>/scripts/contrast-ratio.mjs --file color-pairs.json --format json
 ```
+
+Generate source-level coverage candidates before and after implementation:
+
+```bash
+node <skill-dir>/scripts/theme-surface-inventory.mjs . --summary-only
+```
+
+Review raw colors, inline styles, theme-sensitive transitions, animation/View Transition rules, visual effects and images, overlay/third-party surfaces, pseudo-elements, and SVG colors. Candidate counts are not a quality score and do not replace browser verification.
 
 Automate at least:
 
@@ -225,6 +240,7 @@ Separate categories:
 
 - **Standards failure:** measurable WCAG or platform-guideline failure.
 - **Behavior failure:** wrong preference, flash, persistence, runtime, or motion behavior.
+- **Coverage gap:** an applicable route, surface, viewport, role, data state, or overlay lacks verification evidence.
 - **System inconsistency:** raw colors, broken token mapping, mixed Material versions, missing state.
 - **Visual refinement:** saturation, atmosphere, hierarchy, or polish that is not itself a conformance failure.
 
