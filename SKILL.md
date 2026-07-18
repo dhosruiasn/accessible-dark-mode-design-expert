@@ -1,6 +1,6 @@
 ---
 name: accessible-dark-mode-design-expert
-description: Design, implement, review, and audit accessible light/dark theme systems for websites and apps. Use for dark mode, night mode, theme switching, prefers-color-scheme, color-scheme, design tokens, surface elevation, OLED considerations, contrast audits, theme-aware imagery, Material or Apple dark appearance, reduced-motion-safe transitions, and optional time/weather/sky/ocean atmospheric themes.
+description: Design, implement, review, and audit accessible light/dark theme systems for websites and apps. Use for dark mode, night mode, theme switching, prefers-color-scheme, color-scheme, design tokens, surface elevation, OLED considerations, contrast audits, theme-aware imagery, complete route/state coverage, transition ghosting or afterimages, Material or Apple dark appearance, reduced-motion-safe transitions, and optional time/weather/sky/ocean atmospheric themes.
 ---
 
 # Accessible Dark Mode Design Expert
@@ -13,6 +13,7 @@ Read only the references needed for the request:
 
 - For palette, typography, elevation, images, accessibility, Apple, or Material decisions, read [references/design-foundations.md](references/design-foundations.md).
 - For CSS, JavaScript, TypeScript, theme initialization, persistence, native form styling, or flash prevention, read [references/web-implementation.md](references/web-implementation.md).
+- For an implementation, migration, global review, or any claim that a theme is complete, read [references/coverage-and-acceptance.md](references/coverage-and-acceptance.md). Use [scripts/theme-surface-inventory.mjs](scripts/theme-surface-inventory.mjs) to generate source-level audit candidates; it is an inventory aid, not a pass/fail test.
 - For time-of-day, weather, sky, ocean, storm, or other atmospheric themes, read [references/atmospheric-theming.md](references/atmospheric-theming.md) and the foundations reference.
 - For a review, audit, acceptance criteria, or pre-launch QA, read [references/audit-checklist.md](references/audit-checklist.md).
 - For installing or synchronizing this skill across Codex and Claude Code, read [references/runtime-compatibility.md](references/runtime-compatibility.md).
@@ -23,13 +24,14 @@ Read only the references needed for the request:
 1. Inspect the existing project structure, nearby instructions, theme code, design tokens, component states, assets, and uncommitted changes before editing.
 2. Identify the platform and product context: web, native Apple, Android Material 2, Android Material 3, cross-platform, content-heavy, media-heavy, OLED-sensitive, or atmospheric.
 3. Establish user-preference behavior before selecting colors.
-4. Inventory every foreground, background, surface level, border, icon, semantic status, asset, and interaction state.
-5. Define primitive, semantic, and component token layers. Components must consume semantic roles rather than raw colors.
-6. Create light and dark mappings deliberately. Never generate the final system by inversion.
-7. Verify every adjacent foreground/background pair with the bundled contrast script, including composited alpha colors and elevated surfaces.
-8. Implement switching without wrong-theme flash, full reload, preference loss, or automatic overrides of an explicit choice.
-9. Add motion-safe transitions and theme-aware assets.
-10. Verify the actual product across appearance, accessibility settings, devices, lighting, content, and interaction states.
+4. Create a route/surface/state coverage manifest before styling. Include persistent shells, overlays and portals, authenticated or role-gated flows, third-party content, desktop/mobile layouts, and generated or empty/loading/error states.
+5. Inventory every foreground, background, surface level, border, icon, semantic status, asset, interaction state, raw color, pseudo-element, and theme-sensitive transition. Record stylesheet load order and the element that owns each selected or animated visual state.
+6. Define primitive, semantic, and component token layers. Components must consume semantic roles rather than raw colors.
+7. Create light and dark mappings deliberately. Never generate the final system by inversion.
+8. Verify every adjacent foreground/background pair with the bundled contrast script, including composited alpha colors and elevated surfaces.
+9. Implement switching without wrong-theme flash, full reload, preference loss, automatic overrides of an explicit choice, or temporally mismatched transitions.
+10. Choose atomic or animated switching only after inspecting existing transitions. Default to an atomic switch for legacy, media-heavy, multi-stylesheet, or partially tokenized products.
+11. Verify the actual product across every manifest row, both appearances, accessibility settings, devices, lighting, content, and interaction states. Mark inaccessible or untestable rows explicitly; do not call the theme complete while required rows remain unverified.
 
 ## Non-negotiable rules
 
@@ -99,18 +101,21 @@ Treat `<skill-dir>` in command examples as the directory containing this `SKILL.
 - Listen for system changes only while preference is `system`.
 - Persist the preference value, not merely the currently resolved appearance.
 - Avoid global `transition: all`; transition only selected color-related properties.
+- Do not add theme transitions until existing component transitions have been inventoried. Different durations on backgrounds, shadows, filters, images, and pseudo-elements can create visible afterimages even when each transition is individually motion-safe.
+- Preserve interaction-state ownership. If a moving indicator, slider, or pseudo-element owns the selected fill, recolor that owner instead of adding a second selected background that breaks geometry or motion.
 - Use feature detection or fallbacks for newer CSS such as `light-dark()` and `color-mix()` when project browser support requires it.
 - Keep contrast comments out of source unless generated and tested. Prefer automated checks in tests or build tooling.
 
 ## Audit procedure
 
-1. Extract actual colors from computed styles or design tokens; include alpha compositing and image-backed surfaces.
-2. Generate a matrix across semantic foregrounds, every surface level, and every interaction state.
-3. Run the bundled script on all pairs.
-4. Inspect hierarchy, glare, halation, saturation, borders, and asset loss visually; contrast math alone cannot assess comfort or meaning.
-5. Test Light, Dark, and System; runtime changes; bright, normal, dim, and dark environments; LCD and OLED; mobile and desktop.
-6. For web work, run the project locally and verify the complete flow in a browser when possible.
-7. Report findings by severity with exact tokens/components and measured ratios. Separate standards failures from subjective refinements.
+1. Build and retain the route/surface/state coverage manifest. Include every entry point, overlay root, responsive variant, privileged flow, and third-party island.
+2. Extract actual colors from computed styles or design tokens; include alpha compositing and image-backed surfaces.
+3. Generate a matrix across semantic foregrounds, every surface level, and every interaction state.
+4. Run the bundled script on all pairs.
+5. Inspect hierarchy, glare, halation, saturation, borders, state ownership, clipping, and asset loss visually; contrast math alone cannot assess comfort or meaning.
+6. Test Light, Dark, and System; rapid Light → Dark → Light runtime changes; bright, normal, dim, and dark environments; LCD and OLED; mobile and desktop.
+7. For web work, run the project locally and verify the complete flow in a browser when possible. If browser, authentication, or data access blocks a required row, report it as unverified and use static inspection only as partial evidence.
+8. Report findings by severity with exact tokens/components and measured ratios. Separate standards failures, coverage gaps, and subjective refinements.
 
 ## Output expectations
 
