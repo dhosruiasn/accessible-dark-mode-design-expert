@@ -6,7 +6,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const SKILL_NAME = 'dark-mode-design-expert';
+const SKILL_NAME = 'accessible-dark-mode-design-expert';
+const LEGACY_SKILL_NAME = 'dark-mode-design-expert';
 const MARKER_FILE = '.skill-sync.json';
 const SCHEMA_VERSION = 1;
 const initialRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -20,11 +21,13 @@ Usage:
   node sync-installations.mjs --sync [--target all|codex|claude] [--dry-run]
   node sync-installations.mjs --check [--target all|codex|claude]
   node sync-installations.mjs --adopt [--target codex|claude] [--dry-run]
+  node sync-installations.mjs --migrate-name [--target all|codex|claude] [--dry-run]
 
 Options:
   --sync                 Copy canonical changes to managed installations
   --check                Exit 2 when an installation is missing or has drift
   --adopt                Mark an existing identical installation as managed
+  --migrate-name         Rename a managed v1 installation and sync v2
   --target <target>      all, codex, or claude (default: all)
   --codex-dest <path>    Override the Codex installation directory
   --claude-dest <path>   Override the Claude installation directory
@@ -58,9 +61,11 @@ function parseArguments(argv) {
       process.exit(0);
     }
 
-    if (['--sync', '--check', '--adopt'].includes(argument)) {
-      if (options.action) fail('choose exactly one of --sync, --check, or --adopt');
-      options.action = argument.slice(2);
+    if (['--sync', '--check', '--adopt', '--migrate-name'].includes(argument)) {
+      if (options.action) {
+        fail('choose exactly one of --sync, --check, --adopt, or --migrate-name');
+      }
+      options.action = argument === '--migrate-name' ? 'migrateName' : argument.slice(2);
       continue;
     }
 
@@ -85,7 +90,7 @@ function parseArguments(argv) {
     fail(`unknown option ${argument}`);
   }
 
-  if (!options.action) fail('choose --sync, --check, or --adopt');
+  if (!options.action) fail('choose --sync, --check, --adopt, or --migrate-name');
   if (!['all', 'codex', 'claude'].includes(options.target)) {
     fail('--target must be all, codex, or claude');
   }
@@ -107,13 +112,13 @@ function readJson(filePath) {
   }
 }
 
-function readMarker(root) {
+function readMarker(root, expectedSkillName = SKILL_NAME) {
   const markerPath = path.join(root, MARKER_FILE);
   if (!fs.existsSync(markerPath)) return null;
   const marker = readJson(markerPath);
   if (
     marker.schemaVersion !== SCHEMA_VERSION
-    || marker.skillName !== SKILL_NAME
+    || marker.skillName !== expectedSkillName
     || typeof marker.canonicalSource !== 'string'
     || !marker.managedFiles
     || typeof marker.managedFiles !== 'object'
@@ -133,14 +138,14 @@ function resolveCanonicalRoot(root) {
   return candidate;
 }
 
-function validateSkillRoot(root) {
+function validateSkillRoot(root, expectedSkillName = SKILL_NAME) {
   const skillPath = path.join(root, 'SKILL.md');
   if (!fs.existsSync(skillPath)) throw new Error(`SKILL.md not found in ${root}`);
   const text = fs.readFileSync(skillPath, 'utf8');
   const frontmatter = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   const name = frontmatter?.[1].match(/^name:\s*([^\s]+)\s*$/m)?.[1];
-  if (name !== SKILL_NAME) {
-    throw new Error(`expected skill name ${SKILL_NAME} in ${skillPath}`);
+  if (name !== expectedSkillName) {
+    throw new Error(`expected skill name ${expectedSkillName} in ${skillPath}`);
   }
 }
 
@@ -148,6 +153,7 @@ function shouldExclude(relativePath, repositorySource = false) {
   const parts = relativePath.split(path.sep);
   const repositoryOnly = new Set([
     '.gitignore',
+    'CHANGELOG.md',
     'README.md',
     'CONTRIBUTING.md',
     'SECURITY.md',
@@ -156,6 +162,7 @@ function shouldExclude(relativePath, repositorySource = false) {
     relativePath === MARKER_FILE
     || (repositorySource && repositoryOnly.has(relativePath))
     || (repositorySource && parts[0] === '.github')
+    || (repositorySource && parts[0] === 'docs')
     || parts.includes('.git')
     || parts.includes('node_modules')
     || parts.includes('.DS_Store')
@@ -324,6 +331,66 @@ function removeEmptyParents(startDirectory, stopDirectory) {
   }
 }
 
+function migrateDestination(name, destination, canonicalRoot, dryRun) {
+  const legacyDestination = path.join(path.dirname(destination), LEGACY_SKILL_NAME);
+  const destinationExists = fs.existsSync(destination);
+  const legacyExists = fs.existsSync(legacyDestination);
+
+  if (destinationExists && legacyExists) {
+    throw new SyncConflictError(
+      `[${name}] both old and new installations exist; resolve them before migration`
+    );
+  }
+  if (destinationExists) {
+    process.stdout.write(`[${name}] already uses the new name: ${destination}\n`);
+    syncDestination(name, destination, canonicalRoot, dryRun);
+    return;
+  }
+  if (!legacyExists) {
+    throw new Error(
+      `[${name}] legacy installation not found at ${legacyDestination}; use --sync for a new install`
+    );
+  }
+
+  validateSkillRoot(legacyDestination, LEGACY_SKILL_NAME);
+  const marker = readMarker(legacyDestination, LEGACY_SKILL_NAME);
+  if (!marker) {
+    throw new SyncConflictError(
+      `[${name}] legacy installation is unmanaged and cannot be migrated safely`
+    );
+  }
+
+  const sourceFiles = fileMap(canonicalRoot, { repositorySource: true });
+  const destinationFiles = fileMap(legacyDestination);
+  const conflicts = findSyncConflicts(sourceFiles, destinationFiles, marker);
+  if (conflicts.length) {
+    throw new SyncConflictError(`[${name}] migration conflict: ${conflicts.join('; ')}`);
+  }
+
+  const filesToCopy = Object.entries(sourceFiles)
+    .filter(([relativePath, hash]) => destinationFiles[relativePath] !== hash)
+    .map(([relativePath]) => relativePath);
+  const staleFiles = Object.keys(marker.managedFiles)
+    .filter((relativePath) => !(relativePath in sourceFiles) && destinationFiles[relativePath]);
+
+  process.stdout.write(
+    `[${name}] ${dryRun ? 'would migrate' : 'migrated'} ${legacyDestination} to ${destination}; `
+    + `${filesToCopy.length} changed/new and ${staleFiles.length} stale files\n`
+  );
+  if (dryRun) return;
+
+  fs.renameSync(legacyDestination, destination);
+  for (const relativePath of filesToCopy) {
+    copyManagedFile(canonicalRoot, destination, relativePath);
+  }
+  for (const relativePath of staleFiles) {
+    const destinationPath = path.join(destination, relativePath);
+    fs.unlinkSync(destinationPath);
+    removeEmptyParents(path.dirname(destinationPath), destination);
+  }
+  writeMarker(destination, createMarker(canonicalRoot, sourceFiles));
+}
+
 function syncDestination(name, destination, canonicalRoot, dryRun) {
   const sourceFiles = fileMap(canonicalRoot, { repositorySource: true });
   const destinationExists = fs.existsSync(destination);
@@ -450,6 +517,8 @@ function main() {
   for (const [name, destination] of destinations) {
     if (options.action === 'adopt') {
       adoptDestination(name, destination, canonicalRoot, options.dryRun);
+    } else if (options.action === 'migrateName') {
+      migrateDestination(name, destination, canonicalRoot, options.dryRun);
     } else {
       syncDestination(name, destination, canonicalRoot, options.dryRun);
     }

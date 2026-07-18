@@ -5,12 +5,12 @@ Use one canonical skill directory and treat Codex and Claude installations as ge
 ## Shared source model
 
 - The canonical source is the directory from which `scripts/sync-installations.mjs` was first run.
-- Codex installs at `${CODEX_HOME}/skills/dark-mode-design-expert` when `CODEX_HOME` is set, otherwise `~/.codex/skills/dark-mode-design-expert`.
-- Claude Code installs at `~/.claude/skills/dark-mode-design-expert`.
+- Codex installs at `${CODEX_HOME}/skills/accessible-dark-mode-design-expert` when `CODEX_HOME` is set, otherwise `~/.codex/skills/accessible-dark-mode-design-expert`.
+- Claude Code installs at `~/.claude/skills/accessible-dark-mode-design-expert`.
 - Each installed copy receives `.skill-sync.json`. This marker records the canonical path and hashes of managed files.
 - Running the synchronizer from either installed copy follows the marker back to the canonical source.
 - Unknown files in an installation are preserved. A managed file changed only in an installation causes a conflict instead of being overwritten.
-- Repository-only files such as `README.md`, contribution/security guides, `.gitignore`, and `.github/` stay in the canonical repository. `LICENSE` is included in installed copies.
+- Repository-only files such as `README.md`, `CHANGELOG.md`, contribution/security guides, `.gitignore`, `.github/`, and `docs/` stay in the canonical repository. `LICENSE` and `NOTICE.md` are included in installed copies.
 
 ## Runtime behavior
 
@@ -18,8 +18,8 @@ Both runtimes read `SKILL.md`, relative reference links, and bundled scripts. Ke
 
 - Codex uses `agents/openai.yaml` for UI metadata.
 - Claude Code ignores `agents/openai.yaml`; leaving it in the shared source is harmless.
-- Codex can be invoked with `$dark-mode-design-expert`.
-- Claude Code can be invoked with `/dark-mode-design-expert` or trigger from the description.
+- Codex can be invoked with `$accessible-dark-mode-design-expert`.
+- Claude Code can be invoked with `/accessible-dark-mode-design-expert` or trigger from the description.
 - In command examples, `<skill-dir>` means the directory containing `SKILL.md`. Claude Code may substitute `${CLAUDE_SKILL_DIR}`. Codex should resolve the installed skill path from its skill catalog.
 
 ## Initial adoption

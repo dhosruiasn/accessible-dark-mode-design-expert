@@ -12,18 +12,29 @@ const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const synchronizer = path.join(scriptDirectory, 'sync-installations.mjs');
 const canonicalRoot = path.resolve(scriptDirectory, '..');
 const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'dark-mode-skill-sync-'));
-const codexDestination = path.join(temporaryRoot, 'codex', 'dark-mode-design-expert');
-const claudeDestination = path.join(temporaryRoot, 'claude', 'dark-mode-design-expert');
+const skillName = 'accessible-dark-mode-design-expert';
+const legacySkillName = 'dark-mode-design-expert';
+const codexDestination = path.join(temporaryRoot, 'codex', skillName);
+const claudeDestination = path.join(temporaryRoot, 'claude', skillName);
 
-function run(scriptPath, ...argumentsList) {
+function runWithDestinations(scriptPath, codexPath, claudePath, ...argumentsList) {
   return spawnSync(process.execPath, [
     scriptPath,
     ...argumentsList,
     '--codex-dest',
-    codexDestination,
+    codexPath,
     '--claude-dest',
-    claudeDestination,
+    claudePath,
   ], { encoding: 'utf8' });
+}
+
+function run(scriptPath, ...argumentsList) {
+  return runWithDestinations(
+    scriptPath,
+    codexDestination,
+    claudeDestination,
+    ...argumentsList
+  );
 }
 
 function hash(value) {
@@ -37,8 +48,11 @@ try {
   assert.equal(fs.existsSync(path.join(claudeDestination, 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(codexDestination, '.skill-sync.json')), true);
   assert.equal(fs.existsSync(path.join(codexDestination, 'README.md')), false);
+  assert.equal(fs.existsSync(path.join(codexDestination, 'CHANGELOG.md')), false);
   assert.equal(fs.existsSync(path.join(codexDestination, '.gitignore')), false);
+  assert.equal(fs.existsSync(path.join(codexDestination, 'docs')), false);
   assert.equal(fs.existsSync(path.join(codexDestination, 'LICENSE')), true);
+  assert.equal(fs.existsSync(path.join(codexDestination, 'NOTICE.md')), true);
 
   const initialCheck = run(synchronizer, '--check');
   assert.equal(initialCheck.status, 0, initialCheck.stdout);
@@ -78,6 +92,58 @@ try {
   );
   const installedCheck = run(installedSynchronizer, '--check');
   assert.equal(installedCheck.status, 0, installedCheck.stdout);
+
+  const migrationParent = path.join(temporaryRoot, 'migration-codex');
+  const migrationDestination = path.join(migrationParent, skillName);
+  const legacyDestination = path.join(migrationParent, legacySkillName);
+  const migrationSeed = runWithDestinations(
+    synchronizer,
+    legacyDestination,
+    claudeDestination,
+    '--sync',
+    '--target',
+    'codex'
+  );
+  assert.equal(migrationSeed.status, 0, migrationSeed.stderr);
+
+  const legacyMarkerPath = path.join(legacyDestination, '.skill-sync.json');
+  const legacyMarker = JSON.parse(fs.readFileSync(legacyMarkerPath, 'utf8'));
+  for (const relativePath of Object.keys(legacyMarker.managedFiles)) {
+    const filePath = path.join(legacyDestination, relativePath);
+    const content = fs.readFileSync(filePath, 'utf8')
+      .replaceAll(skillName, legacySkillName)
+      .replaceAll('Accessible Dark Mode Design Expert', 'Dark Mode Design Expert');
+    fs.writeFileSync(filePath, content);
+    legacyMarker.managedFiles[relativePath] = hash(content);
+  }
+  legacyMarker.skillName = legacySkillName;
+  legacyMarker.canonicalSource = path.join(temporaryRoot, legacySkillName);
+  fs.writeFileSync(legacyMarkerPath, `${JSON.stringify(legacyMarker, null, 2)}\n`);
+  fs.writeFileSync(path.join(legacyDestination, 'personal-note.txt'), 'preserve me\n');
+
+  const migration = runWithDestinations(
+    synchronizer,
+    migrationDestination,
+    claudeDestination,
+    '--migrate-name',
+    '--target',
+    'codex'
+  );
+  assert.equal(migration.status, 0, migration.stderr);
+  assert.equal(fs.existsSync(legacyDestination), false);
+  assert.equal(fs.existsSync(migrationDestination), true);
+  assert.equal(
+    fs.readFileSync(path.join(migrationDestination, 'personal-note.txt'), 'utf8'),
+    'preserve me\n'
+  );
+  assert.match(
+    fs.readFileSync(path.join(migrationDestination, 'SKILL.md'), 'utf8'),
+    new RegExp(`^name: ${skillName}$`, 'm')
+  );
+  const migratedMarker = JSON.parse(
+    fs.readFileSync(path.join(migrationDestination, '.skill-sync.json'), 'utf8')
+  );
+  assert.equal(migratedMarker.skillName, skillName);
 
   process.stdout.write('All installation sync tests passed.\n');
 } finally {
