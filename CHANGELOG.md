@@ -6,6 +6,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+
+- Replaced the repository logo with the contributor-provided crescent moon artwork
+- Regenerated the GitHub social preview to use the new visual identity
+
 ## [2.0.0] - 2026-07-19
 
 ### Added
